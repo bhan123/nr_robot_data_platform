@@ -1,0 +1,622 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { Episode, AssetFile, QCResult, DeliveryBatch, ObjectAsset, QARule } from './types';
+
+// Mock Episodes
+export const mockEpisodes: Episode[] = [
+  {
+    episode_id: "EP-20260528-091",
+    task_name: "双手捡起保温杯并放入纸箱",
+    scene: "实验室-日常居家",
+    items: ["保温杯", "瓦楞纸箱"],
+    actions: ["双手抓取", "提起", "精准放置"],
+    actor: "张磊 (Actor-03)",
+    seat_id: "Seat-A4",
+    collect_date: "2026-05-28",
+    duration: 15.4,
+    fps: 30,
+    frame_count: 462,
+    file_count: 9,
+    total_size: "184.2 MB",
+    nas_path: "/nas/robot_capture_v2/2026-05-28/EP-20260528-091/",
+    qc_status: "pass",
+    trainable: true,
+    deliverable: true,
+    file_integrity_status: "complete",
+    alignment_status: "aligned",
+    data_version: "v1.2.0",
+    process_version: "v2.0.4-clean",
+    tags: ["双手对齐", "协同运动", "刚性物体"],
+    meta_info: {
+      task_description: "采集员模拟双手提起约500g的保温杯，绕过障碍物，最后将保温杯直立放入深度为20cm的瓦楞纸箱中。",
+      steps: ["双手触碰保温杯双侧", "抓紧并向上垂直提起 15cm", "横向移动 30cm 避开桌面边缘的杯垫", "精准将保温杯放置于纸箱中央", "松开双手并撤回"],
+      device_id: "Huan-GR1-V2",
+      ambient_light: "500lux 暖白光"
+    }
+  },
+  {
+    episode_id: "EP-20260528-092",
+    task_name: "使用抹布擦拭木质桌面水渍",
+    scene: "家庭场景-厨房中岛",
+    items: ["抹布", "木质餐桌"],
+    actions: ["单手抓取", "下压往复擦拭", "画圈擦拭"],
+    actor: "李雪 (Actor-05)",
+    seat_id: "Seat-B2",
+    collect_date: "2026-05-28",
+    duration: 22.8,
+    fps: 30,
+    frame_count: 684,
+    file_count: 9,
+    total_size: "272.5 MB",
+    nas_path: "/nas/robot_capture_v2/2026-05-28/EP-20260528-092/",
+    qc_status: "pass",
+    trainable: true,
+    deliverable: true,
+    file_integrity_status: "complete",
+    alignment_status: "aligned",
+    data_version: "v1.2.0",
+    process_version: "v2.0.4-clean",
+    tags: ["受力控制", "往复运动", "柔性物体"],
+    meta_info: {
+      task_description: "右手执湿抹布，施加恒定下压力（约5N）在餐桌面水渍上做往复及画圈运动，随后将抹布放在餐桌角上。",
+      steps: ["右手合拢抓取桌上的折叠抹布", "下压抹布并按S型路径擦拭水渍区域", "重复往复擦拭 3 次", "右手提起抹布，将其平铺在桌角", "右手脱离接触"],
+      device_id: "Huan-GR1-V2",
+      ambient_light: "350lux 暖黄光"
+    }
+  },
+  {
+    episode_id: "EP-20260528-093",
+    task_name: "开启茶几抽屉并取出遥控器",
+    scene: "实验室-客厅沙盘",
+    items: ["客厅茶几", "电视遥控器"],
+    actions: ["硬拉柄部", "滑索拉开", "精密捏取"],
+    actor: "赵宇 (Actor-01)",
+    seat_id: "Seat-A1",
+    collect_date: "2026-05-28",
+    duration: 18.2,
+    fps: 30,
+    frame_count: 546,
+    file_count: 7,
+    total_size: "198.6 MB",
+    nas_path: "/nas/robot_capture_v2/2026-05-28/EP-20260528-093/",
+    qc_status: "fail",
+    trainable: false,
+    deliverable: false,
+    file_integrity_status: "incomplete",
+    alignment_status: "missing_modality",
+    data_version: "v1.2.0",
+    process_version: "v2.0.1-failed",
+    tags: ["顺应性控制", "开合动作", "小件物品"],
+    meta_info: {
+      task_description: "拉开具有磁吸尼龙阻尼的前置茶几抽屉，在抽屉最内侧盲区内，用两指精准捏起电视遥控器并平稳移出。",
+      steps: ["拉环握持", "外拉解锁磁吸并克服阻尼拉出抽屉", "右手伸入抽屉，盲摸抓取遥控器", "将遥控器拿出并轻放在茶几面上", "关上抽屉"],
+      device_id: "Huan-GR1-V1",
+      ambient_light: "450lux 冷白日光"
+    }
+  },
+  {
+    episode_id: "EP-20260527-042",
+    task_name: "倾倒果皮箱垃圾进入分类大垃圾桶",
+    scene: "ITW-办公室真实环境",
+    items: ["小型手持垃圾桶", "大型双分类垃圾桶"],
+    actions: ["双臂协作", "倒置旋转", "磕碰清空"],
+    actor: "陈强 (Actor-12)",
+    seat_id: "Seat-C1",
+    collect_date: "2026-05-27",
+    duration: 25.1,
+    fps: 30,
+    frame_count: 753,
+    file_count: 9,
+    total_size: "312.0 MB",
+    nas_path: "/nas/robot_capture_v2/2026-05-27/EP-20260527-042/",
+    qc_status: "review",
+    trainable: true,
+    deliverable: false,
+    file_integrity_status: "complete",
+    alignment_status: "offset_minor",
+    data_version: "v1.1.2",
+    process_version: "v2.0.4-pending",
+    tags: ["大范围移动", "重力卸荷", "轨迹偏移"],
+    meta_info: {
+      task_description: "双臂拿起办公桌侧边的小垃圾桶，走到1.5米外的大分类桶前，举高至80cm后，旋转140度倒空垃圾，轻轻敲击后复位。",
+      steps: ["双手环抱或抓提小垃圾筒两侧", "行进移动并保持垃圾筒开口朝上", "平举至大分类桶上方", "顺时针翻转手腕实施倾倒", "轻轻磕碰大桶内沿 2 次卸载挂底杂物", "原路返回并放置回工作位"],
+      device_id: "Unitree-H1-E3",
+      ambient_light: "600lux 荧光灯"
+    }
+  },
+  {
+    episode_id: "EP-20260527-043",
+    task_name: "操作咖啡机按下启动键及提取咖啡杯",
+    scene: "家庭场景-厨房中岛",
+    items: ["胶囊咖啡机", "陶瓷马克杯"],
+    actions: ["单指触碰", "精密抓握", "水平滑移"],
+    actor: "李雪 (Actor-05)",
+    seat_id: "Seat-B2",
+    collect_date: "2026-05-27",
+    duration: 12.0,
+    fps: 30,
+    frame_count: 360,
+    file_count: 9,
+    total_size: "145.8 MB",
+    nas_path: "/nas/robot_capture_v2/2026-05-27/EP-20260527-043/",
+    qc_status: "pass",
+    trainable: true,
+    deliverable: true,
+    file_integrity_status: "complete",
+    alignment_status: "aligned",
+    data_version: "v1.1.2",
+    process_version: "v2.0.4-clean",
+    tags: ["指尖微操", "力反馈", "热源避障"],
+    meta_info: {
+      task_description: "伸出右手食指，精准按下直径 10mm 的极小阻尼启动键。当指示灯常亮后，单手包络马克杯把手，水平取出已盛满的水杯。",
+      steps: ["食指水平伸出对准启动键中心", "施加 3N 触发力下压按键并撤回", "等待数秒模拟咖啡流出", "用拇指与食指捏起或穿过马克杯耳把", "保持水平状态缓慢提起马克杯，避免咖啡洒出"],
+      device_id: "Huan-GR1-V2",
+      ambient_light: "380lux 射灯"
+    }
+  },
+  {
+    episode_id: "EP-20260526-015",
+    task_name: "双手整理散落的书籍入书架",
+    scene: "家庭场景-客厅书柜",
+    items: ["多尺寸杂志", "立式木书架"],
+    actions: ["双手夹持", "对齐姿态", "推入插紧"],
+    actor: "王华 (Actor-02)",
+    seat_id: "Seat-A2",
+    collect_date: "2026-05-26",
+    duration: 31.5,
+    fps: 30,
+    frame_count: 945,
+    file_count: 9,
+    total_size: "392.4 MB",
+    nas_path: "/nas/robot_capture_v2/2026-05-26/EP-20260526-015/",
+    qc_status: "pass",
+    trainable: true,
+    deliverable: true,
+    file_integrity_status: "complete",
+    alignment_status: "aligned",
+    data_version: "v1.1.0",
+    process_version: "v2.0.4-clean",
+    tags: ["多物体接触", "夹持阻尼", "三维避障"],
+    meta_info: {
+      task_description: "将桌上凌乱横陈的 3 本大尺寸时尚杂志和 1 本精装书籍用两只手臂配合并夹起，摆正为垂直立姿，缓慢推入拥挤的书架窄缝中。",
+      steps: ["双手各自按压合围 4 本书的左右立面", "施力将书本拢在一起，并旋转 90 度呈竖立姿态", "抬高至胸前并对准书架第 2 层空白细缝", "对准后缓慢向深处推入 25cm", "抽出双手"],
+      device_id: "Huan-GR1-V2",
+      ambient_light: "420lux 混合漫射光"
+    }
+  },
+  {
+    episode_id: "EP-20260526-016",
+    task_name: "单手提持多功能塑料水桶并注入3升水",
+    scene: "MWV_多相机实验室-采集站B",
+    items: ["手提塑料水桶", "标准水龙头"],
+    actions: ["提吊拉手", "水平靠拢", "流量估计"],
+    actor: "赵宇 (Actor-01)",
+    seat_id: "Seat-A1",
+    collect_date: "2026-05-26",
+    duration: 28.0,
+    fps: 30,
+    frame_count: 840,
+    file_count: 9,
+    total_size: "348.1 MB",
+    nas_path: "/nas/robot_capture_v2/2026-05-26/EP-20260526-016/",
+    qc_status: "fail",
+    trainable: false,
+    deliverable: false,
+    file_integrity_status: "complete",
+    alignment_status: "offset_severe",
+    data_version: "v1.1.0",
+    process_version: "v2.0.2-offset-failed",
+    tags: ["重力漂移", "变力夹持", "多模态错位"],
+    meta_info: {
+      task_description: "左手用力夹提起空塑料提桶，精确移至洗手池面放好，用右侧五个手指转动龙头180度开水，感知水位达到1/3后迅速反向关闭龙头。",
+      steps: ["单手手指合拢抓紧提手正中点", "将提桶稳定托举不晃动并放于水槽中心", "微操操作旋转开水把手", "随着蓄水深度变深，机械臂逐渐增大力度维持平衡", "迅速回拧把手关闭水流"],
+      device_id: "Huan-GR1-V1",
+      ambient_light: "550lux 高反光暖灯"
+    }
+  },
+  {
+    episode_id: "EP-20260525-110",
+    task_name: "清理餐桌上的空可乐罐与废纸屑",
+    scene: "实验室-日常居家",
+    items: ["易拉罐", "纸屑", "小敞口果皮篓"],
+    actions: ["单手捏拿", "双边协同", "抛掷运动"],
+    actor: "张磊 (Actor-03)",
+    seat_id: "Seat-A4",
+    collect_date: "2026-05-25",
+    duration: 14.5,
+    fps: 30,
+    frame_count: 435,
+    file_count: 9,
+    total_size: "162.3 MB",
+    nas_path: "/nas/robot_capture_v2/2026-05-25/EP-20260525-110/",
+    qc_status: "pass",
+    trainable: true,
+    deliverable: true,
+    file_integrity_status: "complete",
+    alignment_status: "aligned",
+    data_version: "v1.0.8",
+    process_version: "v2.0.4-clean",
+    tags: ["碰撞避免", "单手捡持", "快速作业"],
+    meta_info: {
+      task_description: "快速精准将餐桌上压扁的易拉罐、3张揉搓过的废纸团抓起并精准抛掷进1.2米范围内的果皮篓中。",
+      steps: ["张开两指对准易拉罐质心并抓起", "迅速投掷进入收纳果皮桶", "分批三次拾取桌上碎屑", "将台面复原"],
+      device_id: "Huan-GR1-V2",
+      ambient_light: "410lux 环境散光"
+    }
+  }
+];
+
+// Mock Asset Files grouped by Episode ID
+export const mockAssetFiles: { [episode_id: string]: AssetFile[] } = {
+  "EP-20260528-091": [
+    { file_id: "f1", episode_id: "EP-20260528-091", file_name: "head_rgb.mp4", file_type: "video", file_path: "video/head_rgb.mp4", size: "45.2 MB", exists: true, readable: true, frame_count: 462, start_time: 0, end_time: 15.4, duration: 15.4, checksum_status: "verified", last_modified: "2026-05-28 17:12:05" },
+    { file_id: "f2", episode_id: "EP-20260528-091", file_name: "left_rgb.mp4", file_type: "video", file_path: "video/left_rgb.mp4", size: "42.1 MB", exists: true, readable: true, frame_count: 462, start_time: 0, end_time: 15.4, duration: 15.4, checksum_status: "verified", last_modified: "2026-05-28 17:12:09" },
+    { file_id: "f3", episode_id: "EP-20260528-091", file_name: "right_rgb.mp4", file_type: "video", file_path: "video/right_rgb.mp4", size: "44.0 MB", exists: true, readable: true, frame_count: 462, start_time: 0, end_time: 15.4, duration: 15.4, checksum_status: "verified", last_modified: "2026-05-28 17:12:12" },
+    { file_id: "f4", episode_id: "EP-20260528-091", file_name: "depth.mp4", file_type: "video", file_path: "video/depth.mp4", size: "22.5 MB", exists: true, readable: true, frame_count: 462, start_time: 0.1, end_time: 15.4, duration: 15.3, checksum_status: "verified", last_modified: "2026-05-28 17:12:18" },
+    { file_id: "f5", episode_id: "EP-20260528-091", file_name: "body_mocap.bvh", file_type: "mocap", file_path: "mocap/body_mocap.bvh", size: "18.1 MB", exists: true, readable: true, frame_count: 462, start_time: 0, end_time: 15.4, duration: 15.4, checksum_status: "verified", last_modified: "2026-05-28 17:13:22" },
+    { file_id: "f6", episode_id: "EP-20260528-091", file_name: "pose_6dof.txt", file_type: "pose", file_path: "pose/6dof.txt", size: "8.2 MB", exists: true, readable: true, frame_count: 462, start_time: 0, end_time: 15.4, duration: 15.4, checksum_status: "verified", last_modified: "2026-05-28 17:13:30" },
+    { file_id: "f7", episode_id: "EP-20260528-091", file_name: "finger_skeleton.txt", file_type: "hand_skeleton", file_path: "hand/finger_skeleton.txt", size: "4.1 MB", exists: true, readable: true, frame_count: 462, start_time: 0, end_time: 15.4, duration: 15.4, checksum_status: "verified", last_modified: "2026-05-28 17:13:41" },
+    { file_id: "f8", episode_id: "EP-20260528-091", file_name: "task_info.json", file_type: "json_meta", file_path: "meta/task_info.json", size: "12 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-28 17:10:02" },
+    { file_id: "f9", episode_id: "EP-20260528-091", file_name: "qc_result.json", file_type: "json_qc", file_path: "qc/qc_result.json", size: "4 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-28 17:15:30" }
+  ],
+  "EP-20260528-092": [
+    { file_id: "f11", episode_id: "EP-20260528-092", file_name: "head_rgb.mp4", file_type: "video", file_path: "video/head_rgb.mp4", size: "67.8 MB", exists: true, readable: true, frame_count: 684, start_time: 0, end_time: 22.8, duration: 22.8, checksum_status: "verified", last_modified: "2026-05-28 18:22:10" },
+    { file_id: "f12", episode_id: "EP-20260528-092", file_name: "left_rgb.mp4", file_type: "video", file_path: "video/left_rgb.mp4", size: "63.2 MB", exists: true, readable: true, frame_count: 684, start_time: 0, end_time: 22.8, duration: 22.8, checksum_status: "verified", last_modified: "2026-05-28 18:22:15" },
+    { file_id: "f13", episode_id: "EP-20260528-092", file_name: "right_rgb.mp4", file_type: "video", file_path: "video/right_rgb.mp4", size: "65.5 MB", exists: true, readable: true, frame_count: 684, start_time: 0, end_time: 22.8, duration: 22.8, checksum_status: "verified", last_modified: "2026-05-28 18:22:20" },
+    { file_id: "f14", episode_id: "EP-20260528-092", file_name: "depth.mp4", file_type: "video", file_path: "video/depth.mp4", size: "33.1 MB", exists: true, readable: true, frame_count: 684, start_time: 0, end_time: 22.8, duration: 22.8, checksum_status: "verified", last_modified: "2026-05-28 18:22:31" },
+    { file_id: "f15", episode_id: "EP-20260528-092", file_name: "body_mocap.bvh", file_type: "mocap", file_path: "mocap/body_mocap.bvh", size: "26.2 MB", exists: true, readable: true, frame_count: 684, start_time: 0, end_time: 22.8, duration: 22.8, checksum_status: "verified", last_modified: "2026-05-28 18:24:02" },
+    { file_id: "f16", episode_id: "EP-20260528-092", file_name: "pose_6dof.txt", file_type: "pose", file_path: "pose/6dof.txt", size: "11.5 MB", exists: true, readable: true, frame_count: 684, start_time: 0, end_time: 22.8, duration: 22.8, checksum_status: "verified", last_modified: "2026-05-28 18:24:12" },
+    { file_id: "f17", episode_id: "EP-20260528-092", file_name: "finger_skeleton.txt", file_type: "hand_skeleton", file_path: "hand/finger_skeleton.txt", size: "5.2 MB", exists: true, readable: true, frame_count: 684, start_time: 0, end_time: 22.8, duration: 22.8, checksum_status: "verified", last_modified: "2026-05-28 18:24:25" },
+    { file_id: "f18", episode_id: "EP-20260528-092", file_name: "task_info.json", file_type: "json_meta", file_path: "meta/task_info.json", size: "14 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-28 18:20:00" },
+    { file_id: "f19", episode_id: "EP-20260528-092", file_name: "qc_result.json", file_type: "json_qc", file_path: "qc/qc_result.json", size: "4 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-28 18:29:10" }
+  ],
+  "EP-20260528-093": [
+    { file_id: "f21", episode_id: "EP-20260528-093", file_name: "head_rgb.mp4", file_type: "video", file_path: "video/head_rgb.mp4", size: "52.0 MB", exists: true, readable: true, frame_count: 546, start_time: 0, end_time: 18.2, duration: 18.2, checksum_status: "verified", last_modified: "2026-05-28 19:02:10" },
+    { file_id: "f22", episode_id: "EP-20260528-093", file_name: "left_rgb.mp4", file_type: "video", file_path: "video/left_rgb.mp4", size: "49.1 MB", exists: true, readable: true, frame_count: 546, start_time: 0, end_time: 18.2, duration: 18.2, checksum_status: "verified", last_modified: "2026-05-28 19:02:18" },
+    { file_id: "f23", episode_id: "EP-20260528-093", file_name: "right_rgb.mp4", file_type: "video", file_path: "video/right_rgb.mp4", size: "51.3 MB", exists: true, readable: true, frame_count: 546, start_time: 0, end_time: 18.2, duration: 18.2, checksum_status: "verified", last_modified: "2026-05-28 19:02:22" },
+    { file_id: "f24", episode_id: "EP-20260528-093", file_name: "depth.mp4", file_type: "video", file_path: "video/depth.mp4", size: "26.1 MB", exists: true, readable: true, frame_count: 546, start_time: 0, end_time: 18.2, duration: 18.2, checksum_status: "verified", last_modified: "2026-05-28 19:02:30" },
+    { file_id: "f25", episode_id: "EP-20260528-093", file_name: "body_mocap.bvh", file_type: "mocap", file_path: "mocap/body_mocap.bvh", size: "20.1 MB", exists: true, readable: true, frame_count: 546, start_time: 0, end_time: 18.2, duration: 18.2, checksum_status: "verified", last_modified: "2026-05-28 19:04:11" },
+    { file_id: "f26", episode_id: "EP-20260528-093", file_name: "pose_6dof.txt", file_type: "pose", file_path: "pose/6dof.txt", size: "0 MB", exists: false, readable: false, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "failed", last_modified: "-" },
+    { file_id: "f27", episode_id: "EP-20260528-093", file_name: "finger_skeleton.txt", file_type: "hand_skeleton", file_path: "hand/finger_skeleton.txt", size: "0 MB", exists: false, readable: false, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "failed", last_modified: "-" }
+  ],
+  "EP-20260527-042": [
+    { file_id: "f31", episode_id: "EP-20260527-042", file_name: "head_rgb.mp4", file_type: "video", file_path: "video/head_rgb.mp4", size: "78.2 MB", exists: true, readable: true, frame_count: 753, start_time: 0.6, end_time: 25.1, duration: 24.5, checksum_status: "verified", last_modified: "2026-05-27 15:10:15" },
+    { file_id: "f32", episode_id: "EP-20260527-042", file_name: "left_rgb.mp4", file_type: "video", file_path: "video/left_rgb.mp4", size: "71.6 MB", exists: true, readable: true, frame_count: 753, start_time: 0, end_time: 24.8, duration: 24.8, checksum_status: "verified", last_modified: "2026-05-27 15:10:20" },
+    { file_id: "f33", episode_id: "EP-20260527-042", file_name: "right_rgb.mp4", file_type: "video", file_path: "video/right_rgb.mp4", size: "73.2 MB", exists: true, readable: true, frame_count: 753, start_time: 0, end_time: 24.8, duration: 24.8, checksum_status: "verified", last_modified: "2026-05-27 15:10:25" },
+    { file_id: "f34", episode_id: "EP-20260527-042", file_name: "depth.mp4", file_type: "video", file_path: "video/depth.mp4", size: "38.1 MB", exists: true, readable: true, frame_count: 753, start_time: 0, end_time: 25.1, duration: 25.1, checksum_status: "verified", last_modified: "2026-05-27 15:10:33" },
+    { file_id: "f35", episode_id: "EP-20260527-042", file_name: "body_mocap.bvh", file_type: "mocap", file_path: "mocap/body_mocap.bvh", size: "29.2 MB", exists: true, readable: true, frame_count: 753, start_time: 0, end_time: 24.2, duration: 24.2, checksum_status: "verified", last_modified: "2026-05-27 15:11:42" },
+    { file_id: "f36", episode_id: "EP-20260527-042", file_name: "pose_6dof.txt", file_type: "pose", file_path: "pose/6dof.txt", size: "12.8 MB", exists: true, readable: true, frame_count: 753, start_time: 0.1, end_time: 25.0, duration: 24.9, checksum_status: "verified", last_modified: "2026-05-27 15:11:48" },
+    { file_id: "f37", episode_id: "EP-20260527-042", file_name: "finger_skeleton.txt", file_type: "hand_skeleton", file_path: "hand/finger_skeleton.txt", size: "6.0 MB", exists: true, readable: true, frame_count: 753, start_time: 0, end_time: 25.1, duration: 25.1, checksum_status: "verified", last_modified: "2026-05-27 15:12:01" },
+    { file_id: "f38", episode_id: "EP-20260527-042", file_name: "task_info.json", file_type: "json_meta", file_path: "meta/task_info.json", size: "11 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-27 15:08:00" },
+    { file_id: "f39", episode_id: "EP-20260527-042", file_name: "qc_result.json", file_type: "json_qc", file_path: "qc/qc_result.json", size: "3 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-27 15:15:02" }
+  ],
+  "EP-20260527-043": [
+    { file_id: "f41", episode_id: "EP-20260527-043", file_name: "head_rgb.mp4", file_type: "video", file_path: "video/head_rgb.mp4", size: "36.2 MB", exists: true, readable: true, frame_count: 360, start_time: 0, end_time: 12.0, duration: 12.0, checksum_status: "verified", last_modified: "2026-05-27 16:21:05" },
+    { file_id: "f42", episode_id: "EP-20260527-043", file_name: "left_rgb.mp4", file_type: "video", file_path: "video/left_rgb.mp4", size: "32.0 MB", exists: true, readable: true, frame_count: 360, start_time: 0, end_time: 12.0, duration: 12.0, checksum_status: "verified", last_modified: "2026-05-27 16:21:09" },
+    { file_id: "f43", episode_id: "EP-20260527-043", file_name: "right_rgb.mp4", file_type: "video", file_path: "video/right_rgb.mp4", size: "34.5 MB", exists: true, readable: true, frame_count: 360, start_time: 0, end_time: 12.0, duration: 12.0, checksum_status: "verified", last_modified: "2026-05-27 16:21:14" },
+    { file_id: "f44", episode_id: "EP-20260527-043", file_name: "depth.mp4", file_type: "video", file_path: "video/depth.mp4", size: "18.2 MB", exists: true, readable: true, frame_count: 360, start_time: 0, end_time: 12.0, duration: 12.0, checksum_status: "verified", last_modified: "2026-05-27 16:21:20" },
+    { file_id: "f45", episode_id: "EP-20260527-043", file_name: "body_mocap.bvh", file_type: "mocap", file_path: "mocap/body_mocap.bvh", size: "13.9 MB", exists: true, readable: true, frame_count: 360, start_time: 0, end_time: 12.0, duration: 12.0, checksum_status: "verified", last_modified: "2026-05-27 16:22:30" },
+    { file_id: "f46", episode_id: "EP-20260527-043", file_name: "pose_6dof.txt", file_type: "pose", file_path: "pose/6dof.txt", size: "6.1 MB", exists: true, readable: true, frame_count: 360, start_time: 0, end_time: 12.0, duration: 12.0, checksum_status: "verified", last_modified: "2026-05-27 16:22:38" },
+    { file_id: "f47", episode_id: "EP-20260527-043", file_name: "finger_skeleton.txt", file_type: "hand_skeleton", file_path: "hand/finger_skeleton.txt", size: "2.8 MB", exists: true, readable: true, frame_count: 360, start_time: 0, end_time: 12.0, duration: 12.0, checksum_status: "verified", last_modified: "2026-05-27 16:22:45" },
+    { file_id: "f48", episode_id: "EP-20260527-043", file_name: "task_info.json", file_type: "json_meta", file_path: "meta/task_info.json", size: "10 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-27 16:19:10" },
+    { file_id: "f49", episode_id: "EP-20260527-043", file_name: "qc_result.json", file_type: "json_qc", file_path: "qc/qc_result.json", size: "3 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-27 16:25:33" }
+  ],
+  "EP-20260526-015": [
+    { file_id: "f51", episode_id: "EP-20260526-015", file_name: "head_rgb.mp4", file_type: "video", file_path: "video/head_rgb.mp4", size: "98.5 MB", exists: true, readable: true, frame_count: 945, start_time: 0, end_time: 31.5, duration: 31.5, checksum_status: "verified", last_modified: "2026-05-26 14:12:00" },
+    { file_id: "f52", episode_id: "EP-20260526-015", file_name: "left_rgb.mp4", file_type: "video", file_path: "video/left_rgb.mp4", size: "91.2 MB", exists: true, readable: true, frame_count: 945, start_time: 0, end_time: 31.5, duration: 31.5, checksum_status: "verified", last_modified: "2026-05-26 14:12:05" },
+    { file_id: "f53", episode_id: "EP-20260526-015", file_name: "right_rgb.mp4", file_type: "video", file_path: "video/right_rgb.mp4", size: "94.1 MB", exists: true, readable: true, frame_count: 945, start_time: 0, end_time: 31.5, duration: 31.5, checksum_status: "verified", last_modified: "2026-05-26 14:12:10" },
+    { file_id: "f54", episode_id: "EP-20260526-015", file_name: "depth.mp4", file_type: "video", file_path: "video/depth.mp4", size: "45.0 MB", exists: true, readable: true, frame_count: 945, start_time: 0, end_time: 31.5, duration: 31.5, checksum_status: "verified", last_modified: "2026-05-26 14:12:15" },
+    { file_id: "f55", episode_id: "EP-20260526-015", file_name: "body_mocap.bvh", file_type: "mocap", file_path: "mocap/body_mocap.bvh", size: "36.2 MB", exists: true, readable: true, frame_count: 945, start_time: 0, end_time: 31.5, duration: 31.5, checksum_status: "verified", last_modified: "2026-05-26 14:13:30" },
+    { file_id: "f56", episode_id: "EP-20260526-015", file_name: "pose_6dof.txt", file_type: "pose", file_path: "pose/6dof.txt", size: "16.8 MB", exists: true, readable: true, frame_count: 945, start_time: 0, end_time: 31.5, duration: 31.5, checksum_status: "verified", last_modified: "2026-05-26 14:13:38" },
+    { file_id: "f57", episode_id: "EP-20260526-015", file_name: "finger_skeleton.txt", file_type: "hand_skeleton", file_path: "hand/finger_skeleton.txt", size: "8.1 MB", exists: true, readable: true, frame_count: 945, start_time: 0, end_time: 31.5, duration: 31.5, checksum_status: "verified", last_modified: "2026-05-26 14:13:45" },
+    { file_id: "f58", episode_id: "EP-20260526-015", file_name: "task_info.json", file_type: "json_meta", file_path: "meta/task_info.json", size: "15 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-26 14:10:00" },
+    { file_id: "f59", episode_id: "EP-20260526-015", file_name: "qc_result.json", file_type: "json_qc", file_path: "qc/qc_result.json", size: "4 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-26 14:18:22" }
+  ],
+  "EP-20260526-016": [
+    { file_id: "f61", episode_id: "EP-20260526-016", file_name: "head_rgb.mp4", file_type: "video", file_path: "video/head_rgb.mp4", size: "89.2 MB", exists: true, readable: true, frame_count: 840, start_time: 0, end_time: 28.0, duration: 28.0, checksum_status: "verified", last_modified: "2026-05-26 15:10:02" },
+    { file_id: "f62", episode_id: "EP-20260526-016", file_name: "left_rgb.mp4", file_type: "video", file_path: "video/left_rgb.mp4", size: "82.5 MB", exists: true, readable: true, frame_count: 840, start_time: 0, end_time: 28.0, duration: 28.0, checksum_status: "verified", last_modified: "2026-05-26 15:10:07" },
+    { file_id: "f63", episode_id: "EP-20260526-016", file_name: "right_rgb.mp4", file_type: "video", file_path: "video/right_rgb.mp4", size: "85.2 MB", exists: true, readable: true, frame_count: 840, start_time: 0.1, end_time: 28.0, duration: 27.9, checksum_status: "verified", last_modified: "2026-05-26 15:10:11" },
+    { file_id: "f64", episode_id: "EP-20260526-016", file_name: "depth.mp4", file_type: "video", file_path: "video/depth.mp4", size: "41.0 MB", exists: true, readable: true, frame_count: 840, start_time: 0, end_time: 28.0, duration: 28.0, checksum_status: "verified", last_modified: "2026-05-26 15:10:19" },
+    { file_id: "f65", episode_id: "EP-20260526-016", file_name: "body_mocap.bvh", file_type: "mocap", file_path: "mocap/body_mocap.bvh", size: "31.2 MB", exists: true, readable: true, frame_count: 840, start_time: 4.8, end_time: 28.0, duration: 23.2, checksum_status: "verified", last_modified: "2026-05-26 15:11:02" },
+    { file_id: "f66", episode_id: "EP-20260526-016", file_name: "pose_6dof.txt", file_type: "pose", file_path: "pose/6dof.txt", size: "14.2 MB", exists: true, readable: true, frame_count: 840, start_time: 0, end_time: 28.0, duration: 28.0, checksum_status: "verified", last_modified: "2026-05-26 15:11:10" },
+    { file_id: "f67", episode_id: "EP-20260526-016", file_name: "finger_skeleton.txt", file_type: "hand_skeleton", file_path: "hand/finger_skeleton.txt", size: "0.2 MB", exists: true, readable: false, frame_count: 120, start_time: 0, end_time: 4.0, duration: 4.0, checksum_status: "failed", last_modified: "2026-05-26 15:11:15" },
+    { file_id: "f68", episode_id: "EP-20260526-016", file_name: "task_info.json", file_type: "json_meta", file_path: "meta/task_info.json", size: "12 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-26 15:09:00" },
+    { file_id: "f69", episode_id: "EP-20260526-016", file_name: "qc_result.json", file_type: "json_qc", file_path: "qc/qc_result.json", size: "4 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-26 15:18:02" }
+  ],
+  "EP-20260525-110": [
+    { file_id: "f71", episode_id: "EP-20260525-110", file_name: "head_rgb.mp4", file_type: "video", file_path: "video/head_rgb.mp4", size: "42.0 MB", exists: true, readable: true, frame_count: 435, start_time: 0, end_time: 14.5, duration: 14.5, checksum_status: "verified", last_modified: "2026-05-25 10:12:02" },
+    { file_id: "f72", episode_id: "EP-20250525-110", file_name: "left_rgb.mp4", file_type: "video", file_path: "video/left_rgb.mp4", size: "38.2 MB", exists: true, readable: true, frame_count: 435, start_time: 0, end_time: 14.5, duration: 14.5, checksum_status: "verified", last_modified: "2026-05-25 10:12:08" },
+    { file_id: "f73", episode_id: "EP-20250525-110", file_name: "right_rgb.mp4", file_type: "video", file_path: "video/right_rgb.mp4", size: "40.1 MB", exists: true, readable: true, frame_count: 435, start_time: 0, end_time: 14.5, duration: 14.5, checksum_status: "verified", last_modified: "2026-05-25 10:12:12" },
+    { file_id: "f74", episode_id: "EP-20250525-110", file_name: "depth.mp4", file_type: "video", file_path: "video/depth.mp4", size: "20.1 MB", exists: true, readable: true, frame_count: 435, start_time: 0, end_time: 14.5, duration: 14.5, checksum_status: "verified", last_modified: "2026-05-25 10:12:20" },
+    { file_id: "f75", episode_id: "EP-20250525-110", file_name: "body_mocap.bvh", file_type: "mocap", file_path: "mocap/body_mocap.bvh", size: "15.0 MB", exists: true, readable: true, frame_count: 435, start_time: 0, end_time: 14.5, duration: 14.5, checksum_status: "verified", last_modified: "2026-05-25 10:13:30" },
+    { file_id: "f76", episode_id: "EP-20250525-110", file_name: "pose_6dof.txt", file_type: "pose", file_path: "pose/6dof.txt", size: "7.1 MB", exists: true, readable: true, frame_count: 435, start_time: 0, end_time: 14.5, duration: 14.5, checksum_status: "verified", last_modified: "2026-05-25 10:13:38" },
+    { file_id: "f77", episode_id: "EP-20250525-110", file_name: "finger_skeleton.txt", file_type: "hand_skeleton", file_path: "hand/finger_skeleton.txt", size: "3.5 MB", exists: true, readable: true, frame_count: 435, start_time: 0, end_time: 14.5, duration: 14.5, checksum_status: "verified", last_modified: "2026-05-25 10:13:42" },
+    { file_id: "f78", episode_id: "EP-20250525-110", file_name: "task_info.json", file_type: "json_meta", file_path: "meta/task_info.json", size: "9 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-25 10:10:00" },
+    { file_id: "f79", episode_id: "EP-20250525-110", file_name: "qc_result.json", file_type: "json_qc", file_path: "qc/qc_result.json", size: "3 KB", exists: true, readable: true, frame_count: 0, start_time: 0, end_time: 0, duration: 0, checksum_status: "verified", last_modified: "2026-05-25 10:16:11" }
+  ]
+};
+
+// Mock QC Results
+export const mockQCResults: { [episode_id: string]: QCResult } = {
+  "EP-20260528-091": {
+    episode_id: "EP-20260528-091",
+    overall_status: "pass",
+    score: 98,
+    failed_rules: [],
+    warning_rules: [],
+    suggestions: ["各项对齐表现完美", "光照适宜，视频对比度高", "双臂轨迹平稳无畸变点"],
+    checked_at: "2026-05-28 17:15:30",
+    checker_version: "RoboQC-v2.1-static",
+    file_integrity_check: true,
+    video_readable_check: true,
+    mocap_parsable_check: true,
+    pose_continuity_check: true,
+    timestamp_continuous: true,
+    multi_modal_aligned: true
+  },
+  "EP-20260528-092": {
+    episode_id: "EP-20260528-092",
+    overall_status: "pass",
+    score: 95,
+    failed_rules: [],
+    warning_rules: ["RULE_LIGHTING_DARK"],
+    suggestions: ["中岛台下方阴影导致右侧手部遮挡微弱，但未影响整体追踪", "建议下批数据在此场景增加补光"],
+    checked_at: "2026-05-28 18:29:10",
+    checker_version: "RoboQC-v2.1-static",
+    file_integrity_check: true,
+    video_readable_check: true,
+    mocap_parsable_check: true,
+    pose_continuity_check: true,
+    timestamp_continuous: true,
+    multi_modal_aligned: true
+  },
+  "EP-20260528-093": {
+    episode_id: "EP-20260528-093",
+    overall_status: "fail",
+    score: 42,
+    failed_rules: ["RULE_MISSING_6DOF_FILE", "RULE_MISSING_HAND_SKELETON_FILE"],
+    warning_rules: [],
+    suggestions: ["缺少必要的位姿姿态文件", "必须安排重新采集或将此episode废弃"],
+    checked_at: "2026-05-28 19:10:00",
+    checker_version: "RoboQC-v2.1-static",
+    file_integrity_check: false,
+    video_readable_check: true,
+    mocap_parsable_check: true,
+    pose_continuity_check: false,
+    timestamp_continuous: false,
+    multi_modal_aligned: false
+  },
+  "EP-20260527-042": {
+    episode_id: "EP-20260527-042",
+    overall_status: "review",
+    score: 82,
+    failed_rules: [],
+    warning_rules: ["RULE_MODAL_OFFSET_MINOR"],
+    suggestions: ["头戴摄像机视频 head_rgb.mp4 开始阶段有 0.6s 延迟记录，在后处理对齐偏移中已被标记", "动作平稳，数据可用", "需交付开发组核对时间轴补偿参数"],
+    checked_at: "2026-05-27 15:15:02",
+    checker_version: "RoboQC-v2.1-static",
+    file_integrity_check: true,
+    video_readable_check: true,
+    mocap_parsable_check: true,
+    pose_continuity_check: true,
+    timestamp_continuous: true,
+    multi_modal_aligned: true
+  },
+  "EP-20260527-043": {
+    episode_id: "EP-20260527-043",
+    overall_status: "pass",
+    score: 97,
+    failed_rules: [],
+    warning_rules: [],
+    suggestions: ["启动键微操追踪表现令人惊艳", "时间戳完全无抖动"],
+    checked_at: "2026-05-27 16:25:33",
+    checker_version: "RoboQC-v2.1-static",
+    file_integrity_check: true,
+    video_readable_check: true,
+    mocap_parsable_check: true,
+    pose_continuity_check: true,
+    timestamp_continuous: true,
+    multi_modal_aligned: true
+  },
+  "EP-20260526-015": {
+    episode_id: "EP-20260526-015",
+    overall_status: "pass",
+    score: 96,
+    failed_rules: [],
+    warning_rules: [],
+    suggestions: ["双臂大范围合拢避障表现完整", "时间切片对齐极佳"],
+    checked_at: "2026-05-26 14:18:22",
+    checker_version: "RoboQC-v2.1-static",
+    file_integrity_check: true,
+    video_readable_check: true,
+    mocap_parsable_check: true,
+    pose_continuity_check: true,
+    timestamp_continuous: true,
+    multi_modal_aligned: true
+  },
+  "EP-20260526-016": {
+    episode_id: "EP-20260526-016",
+    overall_status: "fail",
+    score: 48,
+    failed_rules: ["RULE_MODAL_OFFSET_SEVERE", "RULE_HAND_SKELETON_UNPARSABLE"],
+    warning_rules: ["RULE_GRAVITY_DRIFT"],
+    suggestions: ["BVH 动捕数据开始偏移达 4.8 秒，属于严重错位", "手指关键点文本文件在前4秒后损坏，无法解算出合理的骨骼转角", "不可用于训练"],
+    checked_at: "2026-05-26 15:18:02",
+    checker_version: "RoboQC-v2.1-static",
+    file_integrity_check: true,
+    video_readable_check: true,
+    mocap_parsable_check: true,
+    pose_continuity_check: true,
+    timestamp_continuous: true,
+    multi_modal_aligned: false
+  },
+  "EP-20260525-110": {
+    episode_id: "EP-20260525-110",
+    overall_status: "pass",
+    score: 94,
+    failed_rules: [],
+    warning_rules: [],
+    suggestions: ["日常室内场景，阴影有些杂乱但不构成障碍，数据整体清晰可用"],
+    checked_at: "2026-05-25 10:16:11",
+    checker_version: "RoboQC-v2.1-static",
+    file_integrity_check: true,
+    video_readable_check: true,
+    mocap_parsable_check: true,
+    pose_continuity_check: true,
+    timestamp_continuous: true,
+    multi_modal_aligned: true
+  }
+};
+
+// Mock Delivery Batches
+export const mockDeliveryBatches: DeliveryBatch[] = [
+  {
+    batch_id: "BATCH-202605-01",
+    project_name: "某大模型独角兽-通用家庭保姆机械手训练集",
+    episode_count: 1420,
+    total_size: "450.6 GB",
+    qc_pass_rate: 98.6,
+    status: "ready",
+    manifest_status: "generated",
+    package_status: "completed",
+    created_at: "2026-05-20",
+    owner: "李晓东 (Delivery Lead)"
+  },
+  {
+    batch_id: "BATCH-202605-02",
+    project_name: "高校重点实验室-多相机人形双臂轨迹细粒度数据集",
+    episode_count: 580,
+    total_size: "185.4 GB",
+    qc_pass_rate: 99.1,
+    status: "delivered",
+    manifest_status: "generated",
+    package_status: "completed",
+    created_at: "2026-05-25",
+    owner: "吴美华 (Partner Account)"
+  },
+  {
+    batch_id: "BATCH-202605-03",
+    project_name: "工业协同仿生手-高精度装配与对齐数据二期",
+    episode_count: 890,
+    total_size: "310.2 GB",
+    qc_pass_rate: 94.2,
+    status: "packaging",
+    manifest_status: "generated",
+    package_status: "running",
+    created_at: "2026-05-29",
+    owner: "李晓东 (Delivery Lead)"
+  },
+  {
+    batch_id: "BATCH-202605-04",
+    project_name: "智能具身科技-柔性操作与大范围轨迹避障数据集",
+    episode_count: 120,
+    total_size: "38.5 GB",
+    qc_pass_rate: 78.4,
+    status: "error",
+    manifest_status: "pending",
+    package_status: "pending",
+    created_at: "2026-05-28",
+    owner: "董博智 (DevOps)"
+  },
+  {
+    batch_id: "BATCH-202605-05",
+    project_name: "双臂物流理货-高负载双手搬运标准件",
+    episode_count: 320,
+    total_size: "112.0 GB",
+    qc_pass_rate: 100.0,
+    status: "pending",
+    manifest_status: "pending",
+    package_status: "pending",
+    created_at: "2026-05-29",
+    owner: "李晓东 (Delivery Lead)"
+  }
+];
+
+// Mock Object Assets
+export const mockObjectAssets: ObjectAsset[] = [
+  { object_id: "obj-1", object_name: "保温杯", category: "厨房器具/饮具", has_3d_model: true, model_formats: ["OBJ", "STL"], related_episode_count: 42, related_task_count: 3, status: "active", note: "高反光不锈钢、带软质提带" },
+  { object_id: "obj-2", object_name: "瓦楞纸箱", category: "包装容器/收纳", has_3d_model: true, model_formats: ["FBX"], related_episode_count: 110, related_task_count: 6, status: "active", note: "柔性刚体、抗形变、无明显反光" },
+  { object_id: "obj-3", object_name: "抹布", category: "家居清洁/软性介质", has_3d_model: false, model_formats: [], related_episode_count: 28, related_task_count: 2, status: "active", note: "柔性极高、随机形状拓扑、吸水变色" },
+  { object_id: "obj-4", object_name: "电视遥控器", category: "电子设备/手动控制器", has_3d_model: true, model_formats: ["OBJ", "STEP"], related_episode_count: 15, related_task_count: 2, status: "active", note: "带多硅胶按键、细长不对称" },
+  { object_id: "obj-5", object_name: "胶囊咖啡机", category: "厨房电器/高低姿态", has_3d_model: true, model_formats: ["STEP"], related_episode_count: 35, related_task_count: 3, status: "active", note: "包含亮面烤漆、高阻敏启动按钮" },
+  { object_id: "obj-6", object_name: "多尺寸杂志", category: "文化用品/扁平叠落", has_3d_model: false, model_formats: [], related_episode_count: 18, related_task_count: 1, status: "active", note: "多页纸张、薄层刚弹性阻尼" },
+  { object_id: "obj-7", object_name: "手提塑料水桶", category: "家政器具/储水介质", has_3d_model: true, model_formats: ["OBJ", "STL"], related_episode_count: 55, related_task_count: 4, status: "active", note: "带活动钢丝把手、可装随动流体" },
+  { object_id: "obj-8", object_name: "易拉罐", category: "消费包装/可挤压件", has_3d_model: true, model_formats: ["OBJ"], related_episode_count: 74, related_task_count: 5, status: "active", note: "可能发生随机物理凹陷形变" }
+];
+
+// Mock Quality Assurance Rules
+export const mockQARules: QARule[] = [
+  {
+    rule_id: "RULE_VIDEO_LACK",
+    name: "多摄像头视频文件缺失",
+    level: "block_all",
+    description: "检测 head_rgb.mp4、left_rgb.mp4、right_rgb.mp4 是否完备，任一摄像头视频缺失将阻断后续三维重建与动作解算。",
+    hit_count: 14,
+    affected_episodes: 14,
+    owner: "系统自检引擎",
+    last_updated: "2026-05-10"
+  },
+  {
+    rule_id: "RULE_MISSING_6DOF_FILE",
+    name: "6DoF位姿文本文件缺失",
+    level: "block_train",
+    description: "对于需要强动作序列对准的任务，必须提取6DoF位姿轨迹。文本不可为空。",
+    hit_count: 8,
+    affected_episodes: 8,
+    owner: "数据血缘校验器",
+    last_updated: "2026-05-12"
+  },
+  {
+    rule_id: "RULE_TIMESTAMP_CONTINUOUS_FAILED",
+    name: "时间戳不连续/不单调",
+    level: "block_train",
+    description: "记录轨迹中前后数据条目时间差值抖动超过原始采集周期(33.3ms)的3倍，或时间戳回退，影响神经网络时间状态自回归仿真。",
+    hit_count: 22,
+    affected_episodes: 15,
+    owner: "动作解算服务器",
+    last_updated: "2026-05-15"
+  },
+  {
+    rule_id: "RULE_MODAL_OFFSET_SEVERE",
+    name: "多模态起止偏移超时 (>1s)",
+    level: "block_train",
+    description: "动捕骨骼BVH数据与参考视频的起讫对准点时间差值绝对值 > 1000 毫秒。属于不可接受的错位。",
+    hit_count: 5,
+    affected_episodes: 5,
+    owner: "同步校验工具链",
+    last_updated: "2026-05-18"
+  },
+  {
+    rule_id: "RULE_MODAL_OFFSET_MINOR",
+    name: "多模态起止时间轻微偏移 (<1s)",
+    level: "warning",
+    description: "多传感器同步偏置在 100ms - 1000ms 之间，可通过配置偏置值(Offset compensation)在特征加载时完成平移对齐。",
+    hit_count: 41,
+    affected_episodes: 38,
+    owner: "同步校验工具链",
+    last_updated: "2026-05-18"
+  },
+  {
+    rule_id: "RULE_LIGHTING_DARK",
+    name: "场景平均照度不足 (Dark)",
+    level: "warning",
+    description: "通过视频前30帧的亮度直方图分析，平均像素照度低于 150 Lux，手部和操作细节容易丢失背景语义特征。",
+    hit_count: 67,
+    affected_episodes: 65,
+    owner: "CV特征提取组件",
+    last_updated: "2026-05-20"
+  },
+  {
+    rule_id: "RULE_TASK_INFO_INCOMPLETE",
+    name: "task_info及结构化元数据不完整",
+    level: "block_delivery",
+    description: "缺少 items 字段、scene 描述、action 关键字清单，或 steps 有明显格式错误。阻断清单检索导出。",
+    hit_count: 12,
+    affected_episodes: 12,
+    owner: "元数据校验器",
+    last_updated: "2026-05-22"
+  }
+];

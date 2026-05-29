@@ -1,0 +1,6 @@
+{
+  "name": "机器人数据资产管理平台",
+  "description": "面向具身智能的非结构化机器人数据检索、多模态时序对齐质检与数据目录交付管理系统",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
