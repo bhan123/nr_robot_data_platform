@@ -10,7 +10,7 @@ export interface Episode {
   items: string[];
   actions: string[];
   actor: string;
-  seat_id: string;
+  seat_id: string; // 采集席位
   collect_date: string;
   duration: number; // in seconds
   fps: number;
@@ -18,7 +18,15 @@ export interface Episode {
   file_count: number;
   total_size: string; // e.g., "142.5 MB"
   nas_path: string;
-  qc_status: 'pass' | 'fail' | 'review'; // 通过, 失败, 待复核
+  qc_status: 'pass' | 'fail' | 'review'; // 质检等级: 通过, 失败, 待复核
+  business_status?: 'draft' | 'pending_audit' | 'initial_approved' | 'initial_rejected' | 'pending_final_audit' | 'published' | 'closed' | 'processing' | 'failed' | 'completed'; // 初始 / 待审核 / 初审通过 / 初审拒绝 / 待终审 / 已发布 / 已关闭 / 处理中 / 失败 / 已完成
+  pipeline: 'MWV' | 'ITW'; // 双数据线分流
+  collect_mode: string; // 采集模式 (VR遥控 / 外骨骼双臂 / 主动示教 / 真实手套)
+  collect_device: string; // 采集设备 (GR-1 V2 / Unitree H1 / Kepler K1)
+  skeleton_type?: string; // 骨骼信息 (17点手部骨指 / BVH全身53骨)
+  has_video: boolean;
+  has_skeleton: boolean;
+  has_depth: boolean;
   trainable: boolean;
   deliverable: boolean;
   file_integrity_status: 'complete' | 'incomplete';

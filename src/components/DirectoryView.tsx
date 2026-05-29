@@ -18,6 +18,7 @@ interface DirectoryViewProps {
   datasetEpisodes: string[];
   presetFilter: string | null;
   onClearPresetFilter: () => void;
+  defaultPipelineFilter?: 'ALL' | 'MWV' | 'ITW';
 }
 
 export function DirectoryView({ 
@@ -25,9 +26,18 @@ export function DirectoryView({
   onAddToDataset, 
   datasetEpisodes,
   presetFilter,
-  onClearPresetFilter
+  onClearPresetFilter,
+  defaultPipelineFilter = 'ALL'
 }: DirectoryViewProps) {
   
+  // Pipeline selector filter
+  const [pipelineFilter, setPipelineFilter] = useState<'ALL' | 'MWV' | 'ITW'>(defaultPipelineFilter);
+  
+  // Synchronize state with incoming prop
+  React.useEffect(() => {
+    setPipelineFilter(defaultPipelineFilter);
+  }, [defaultPipelineFilter]);
+
   // Search state
   const [searchText, setSearchText] = useState("");
 
@@ -75,6 +85,9 @@ export function DirectoryView({
   // Combine Preset + User UI Filters
   const filteredEpisodes = useMemo(() => {
     return mockEpisodes.filter(episode => {
+      // 0. Pipeline partition filter (MWV / ITW split)
+      if (pipelineFilter !== 'ALL' && episode.pipeline !== pipelineFilter) return false;
+
       // 1. Text Search matching id, name, or items
       if (searchText) {
         const query = searchText.toLowerCase();
@@ -303,9 +316,9 @@ export function DirectoryView({
         <div>
           
           {/* List Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-[#1e1e24] gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b border-[#1e1e24] gap-4">
             <div>
-              <h4 className="text-sm font-semibold text-zinc-100 flex items-center">
+              <h4 className="text-sm font-semibold text-zinc-100 flex items-center col-span-2">
                 <Folder size={16} className="text-zinc-400 mr-2" />
                 Episode 采集文件资产目录
               </h4>
@@ -314,9 +327,31 @@ export function DirectoryView({
               </p>
             </div>
 
+            {/* Quick Segmented Control tab for MWV / ITW */}
+            <div className="flex bg-[#09090b] p-1 rounded-lg border border-zinc-905 border-zinc-800 text-[10.5px]">
+              <button 
+                onClick={() => setPipelineFilter('ALL')}
+                className={`px-3 py-1 rounded-md transition duration-150 cursor-pointer text-xs ${pipelineFilter === 'ALL' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                全数据线 ({mockEpisodes.length})
+              </button>
+              <button 
+                onClick={() => setPipelineFilter('MWV')}
+                className={`px-3 py-1 rounded-md transition duration-150 cursor-pointer text-xs ${pipelineFilter === 'MWV' ? 'bg-amber-600 text-white font-semibold' : 'text-zinc-400 hover:text-amber-400'}`}
+              >
+                MWV (动捕实验室)
+              </button>
+              <button 
+                onClick={() => setPipelineFilter('ITW')}
+                className={`px-3 py-1 rounded-md transition duration-150 cursor-pointer text-xs ${pipelineFilter === 'ITW' ? 'bg-blue-600 text-white font-semibold' : 'text-zinc-400 hover:text-blue-400'}`}
+              >
+                ITW (真实环境)
+              </button>
+            </div>
+
             {/* Quick search statistics */}
             <div className="text-xs text-zinc-400 font-medium">
-              当前已被加入草稿包的 EPs: <span className="font-mono text-indigo-400 bg-indigo-950/20 border border-indigo-900/30 px-1.5 py-0.5 rounded font-bold">{datasetEpisodes.length}</span> 个
+              选定 EPs: <span className="font-mono text-indigo-405 text-indigo-400 bg-indigo-950/25 border border-indigo-900/35 px-1.5 py-0.5 rounded font-bold">{datasetEpisodes.length}</span> 个
             </div>
           </div>
 
@@ -327,23 +362,24 @@ export function DirectoryView({
                 <tr className="border-b border-[#1e1e24] text-zinc-400 text-[11px] font-semibold tracking-wider bg-zinc-900/10">
                   <th className="py-2.5 px-3">Episode ID</th>
                   <th className="py-2.5 px-3">采集任务 & 场景</th>
-                  <th className="py-2.5 px-3">关键物品</th>
-                  <th className="py-2.5 px-3">模态状态</th>
-                  <th className="py-2.5 px-3">数据时长 & 大小</th>
-                  <th className="py-2.5 px-3">质量等级/QC</th>
+                  <th className="py-2.5 px-3">采集席位 & 设备</th>
+                  <th className="py-2.5 px-3">采集模式 & 版本</th>
+                  <th className="py-2.5 px-3">骨骼 / 视频 / 深度</th>
+                  <th className="py-2.5 px-3">时长 & 帧数</th>
+                  <th className="py-2.5 px-3">质检与业务状态</th>
                   <th className="py-2.5 px-3 text-right font-sans">操作栏</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1e1e24] text-xs">
                 {filteredEpisodes.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-16 text-zinc-500 bg-zinc-900/10">
+                    <td colSpan={8} className="text-center py-16 text-zinc-500 bg-zinc-900/10">
                       <Archive size={36} className="mx-auto text-zinc-650 mb-2.5" />
                       <p className="font-medium text-zinc-400">无符合筛选条件的 Episode 数据资产</p>
                       <p className="text-[11px] text-zinc-500 mt-1 font-sans">请尝试放宽或“清除”左侧的过滤条件，或者修改文本搜索值</p>
                       <button 
                         onClick={handleClearFilters}
-                        className="mt-4 px-3 py-1.5 text-[11px] bg-zinc-850 hover:bg-zinc-800 text-zinc-100 rounded-lg transition border border-zinc-700/60 cursor-pointer"
+                        className="mt-4 px-3 py-1.5 text-[11px] bg-zinc-850 hover:bg-zinc-800 text-zinc-100 rounded-lg transition border border-zinc-705 border-zinc-800 cursor-pointer"
                       >
                         清空过滤器并重置
                       </button>
@@ -356,20 +392,25 @@ export function DirectoryView({
                     return (
                       <tr 
                         key={ep.episode_id}
-                        className="hover:bg-zinc-900/30 transition-colors group"
+                        className="hover:bg-zinc-900/30 transition-colors group text-xs text-zinc-350"
                       >
                         {/* ID */}
-                        <td className="py-3.5 px-3 font-mono font-medium text-zinc-300">
+                        <td className="py-3 px-3 font-mono font-medium text-zinc-350">
                           <div className="flex flex-col">
-                            <span className="font-semibold text-zinc-200 group-hover:text-blue-400 transition">
+                            <span className="font-semibold text-zinc-200 group-hover:text-amber-500 transition flex items-center">
                               {ep.episode_id}
+                              <span className={`ml-1.5 text-[8px] px-1 rounded-sm font-bold uppercase ${
+                                ep.pipeline === 'MWV' ? 'bg-amber-950/40 text-amber-400 border border-amber-900/20' : 'bg-blue-950/40 text-blue-400 border border-blue-900/20'
+                              }`}>
+                                {ep.pipeline}
+                              </span>
                             </span>
-                            <span className="text-[10px] text-zinc-550">{ep.collect_date}</span>
+                            <span className="text-[10px] text-zinc-500">{ep.collect_date}</span>
                           </div>
                         </td>
 
                         {/* Task & Scene */}
-                        <td className="py-3.5 px-3 max-w-[200px]">
+                        <td className="py-3 px-3 max-w-[170px]">
                           <div className="flex flex-col space-y-0.5">
                             <span className="font-medium text-zinc-300 truncate" title={ep.task_name}>
                               {ep.task_name}
@@ -380,94 +421,84 @@ export function DirectoryView({
                           </div>
                         </td>
 
-                        {/* Items listed */}
-                        <td className="py-3.5 px-3">
-                          <div className="flex flex-wrap gap-1">
-                            {ep.items.map((item, id) => (
-                              <span 
-                                key={id}
-                                className="px-1.5 py-0.5 bg-zinc-900 hover:bg-zinc-850 text-zinc-400 rounded text-[10px] cursor-pointer border border-zinc-800/80 hover:text-zinc-200 transition"
-                              >
-                                {item}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-
-                        {/* Modality icons */}
-                        <td className="py-3.5 px-3">
-                          <div className="flex items-center space-x-1.5">
-                            {/* Integrity Badge */}
-                            <span 
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium font-sans min-w-[48px] text-center border ${
-                                ep.file_integrity_status === 'complete' 
-                                  ? 'bg-emerald-950/20 text-emerald-400 border-emerald-900/30' 
-                                  : 'bg-rose-950/20 text-rose-400 border-rose-900/30'
-                              }`}
-                            >
-                              {ep.file_integrity_status === 'complete' ? '无缺件' : '有缺失'}
-                            </span>
-
-                            {/* Alignment state */}
-                            <span 
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium font-sans truncate max-w-[80px] border ${
-                                ep.alignment_status === 'aligned' 
-                                  ? 'bg-blue-950/20 text-blue-450 border-blue-900/30' 
-                                  : ep.alignment_status === 'offset_minor'
-                                  ? 'bg-amber-950/25 text-amber-450 border-amber-900/35'
-                                  : ep.alignment_status === 'offset_severe'
-                                  ? 'bg-orange-950/20 text-orange-450 border-orange-900/35'
-                                  : 'bg-rose-950/20 text-rose-455 border-rose-900/35'
-                              }`}
-                            >
-                              {ep.alignment_status === 'aligned' && "对准ok"}
-                              {ep.alignment_status === 'offset_minor' && "轻微偏"}
-                              {ep.alignment_status === 'offset_severe' && "严重偏"}
-                              {ep.alignment_status === 'missing_modality' && "模态缺"}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Physics Volume */}
-                        <td className="py-3.5 px-3 font-mono text-[11px] text-zinc-300">
+                        {/* Seat & Device */}
+                        <td className="py-3 px-3">
                           <div className="flex flex-col">
-                            <span>{ep.duration}s <span className="text-zinc-500 font-sans">({ep.frame_count}帧)</span></span>
-                            <span className="text-[10px] text-zinc-550">{ep.total_size}</span>
+                            <span className="font-mono text-zinc-300 font-medium">{ep.seat_id}</span>
+                            <span className="text-[10px] text-zinc-500 max-w-[110px] truncate" title={ep.collect_device}>{ep.collect_device}</span>
                           </div>
                         </td>
 
-                        {/* Quality Overall Badge */}
-                        <td className="py-3.5 px-3">
-                          <span 
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                        {/* Mode & Version */}
+                        <td className="py-3 px-3">
+                          <div className="flex flex-col">
+                            <span className="text-zinc-300 font-medium text-[11px]">{ep.collect_mode}</span>
+                            <span className="text-[10px] text-zinc-500 font-mono">{ep.data_version}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-xs">
+                          <div className="flex items-center space-x-1.5 font-sans">
+                            <span className={`px-1.5 rounded-sm text-[9px] font-bold ${ep.has_video ? 'bg-emerald-950/30 text-emerald-400 border border-emerald-900/20' : 'bg-zinc-900 border border-zinc-800 text-zinc-650'}`}>
+                              视频
+                            </span>
+                            <span className={`px-1.5 rounded-sm text-[9px] font-bold ${ep.has_skeleton ? 'bg-sky-950/30 text-sky-400 border border-sky-900/20' : 'bg-zinc-900 border border-zinc-800 text-zinc-650'}`}>
+                              骨骼
+                            </span>
+                            <span className={`px-1.5 rounded-sm text-[9px] font-bold ${ep.has_depth ? 'bg-indigo-950/30 text-indigo-400 border border-indigo-900/20' : 'bg-zinc-900 border border-zinc-800 text-zinc-655'}`}>
+                              深度
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Physics metrics */}
+                        <td className="py-3 px-3 font-mono text-[11px] text-[#eee]">
+                          <div className="flex flex-col">
+                            <span>{ep.duration}s <span className="text-zinc-550 font-sans">({ep.frame_count}帧)</span></span>
+                            <span className="text-[10px] text-zinc-450">{ep.total_size}</span>
+                          </div>
+                        </td>
+
+                        {/* Quality & Business Workflows */}
+                        <td className="py-3 px-3 text-xs">
+                          <div className="flex flex-col space-y-1">
+                            {/* QC level */}
+                            <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[9.5px] font-medium border w-fit ${
                               ep.qc_status === 'pass' 
-                                ? 'bg-emerald-950/30 text-emerald-400 border-emerald-900/40' 
+                                ? 'bg-emerald-950/20 text-emerald-400 border-emerald-900/30' 
                                 : ep.qc_status === 'fail'
-                                ? 'bg-rose-950/30 text-rose-400 border-rose-900/40 font-bold'
-                                : 'bg-amber-950/30 text-amber-400 border-amber-900/40'
-                            }`}
-                          >
-                            <span className={`w-1 h-1 rounded-full mr-1.5 ${
-                              ep.qc_status === 'pass' 
-                                ? 'bg-emerald-500' 
-                                : ep.qc_status === 'fail'
-                                ? 'bg-rose-500'
-                                : 'bg-amber-400'
-                            }`}></span>
-                            {ep.qc_status === 'pass' && '通过'}
-                            {ep.qc_status === 'review' && '待复核'}
-                            {ep.qc_status === 'fail' && '未通过'}
-                          </span>
+                                ? 'bg-rose-950/25 text-rose-455 border-rose-900/35 font-bold'
+                                : 'bg-amber-950/20 text-amber-400 border-amber-900/30'
+                            }`}>
+                              <span className={`w-1 h-1 rounded-full mr-1 ${
+                                ep.qc_status === 'pass' ? 'bg-emerald-400' : ep.qc_status === 'fail' ? 'bg-rose-500' : 'bg-amber-400'
+                              }`}></span>
+                              {ep.qc_status === 'pass' ? '通过' : ep.qc_status === 'fail' ? '不通过' : '待一审'}
+                            </span>
+                            
+                            {/* Process cycle status */}
+                            <span className="text-[10px] text-zinc-400 font-sans">
+                              {ep.business_status === 'draft' && '• 初始(Draft)'}
+                              {ep.business_status === 'pending_audit' && '• 待一审待审核'}
+                              {ep.business_status === 'initial_approved' && '• 初审已通过'}
+                              {ep.business_status === 'initial_rejected' && '• 拒绝并打回'}
+                              {ep.business_status === 'pending_final_audit' && '• 待终审段'}
+                              {ep.business_status === 'published' && '• 已发布出版'}
+                              {ep.business_status === 'closed' && '• 已关闭归档'}
+                              {ep.business_status === 'processing' && '• 在线处理中'}
+                              {ep.business_status === 'failed' && '• 评估进程失败'}
+                              {ep.business_status === 'completed' && '• 已放行完成'}
+                            </span>
+                          </div>
                         </td>
 
                         {/* Interactive click handlers */}
-                        <td className="py-3.5 px-3 text-right">
+                        <td className="py-3 px-3 text-right">
                           <div className="flex items-center justify-end space-x-1">
                             
                             {/* Select / Detail trigger */}
                             <button 
                               onClick={() => onSelectEpisode(ep.episode_id)}
-                              className="px-2 py-1 bg-zinc-800/80 hover:bg-zinc-750 text-zinc-200 rounded-md font-medium text-[11px] cursor-pointer border border-zinc-700/60 duration-150"
+                              className="px-2 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-md font-medium text-[11px] cursor-pointer border border-zinc-800 duration-150"
                             >
                               查看详情
                             </button>

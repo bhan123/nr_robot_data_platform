@@ -12,16 +12,22 @@ import { DatasetView } from './components/DatasetView';
 import { DeliveryView } from './components/DeliveryView';
 import { ObjectsView } from './components/ObjectsView';
 import { RulesView } from './components/RulesView';
+import { CuttingView } from './components/CuttingView';
+import { DownloadHubView } from './components/DownloadHubView';
+import { SystemView } from './components/SystemView';
 
 import { 
   LayoutDashboard, FolderOpen, Cpu, Truck, Box, ShieldCheck, 
-  Search, Bell, HardDrive, Clock, HelpCircle, HardDriveDownload 
+  Search, Bell, HardDrive, Clock, HelpCircle, HardDriveDownload,
+  Scissors, Settings, Users, ArrowUpRight
 } from 'lucide-react';
 
 export default function App() {
   
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'directory' | 'datasets' | 'delivery' | 'objects' | 'rules'>('dashboard');
+  const [activeTab, setActiveTab] = useState<
+    'dashboard' | 'directory' | 'datasets' | 'delivery' | 'cutting' | 'download_hub' | 'rules' | 'objects' | 'system'
+  >('dashboard');
   
   // Selection details state
   const [selectedEpisodeId, setSelectedEpisodeId] = useState<string | null>(null);
@@ -89,47 +95,62 @@ export default function App() {
           </div>
 
           {/* Nav List */}
-          <nav className="p-4 space-y-1">
+          <nav className="p-4 space-y-1 overflow-y-auto max-h-[75vh] scrollbar-none">
             
             <button
               onClick={() => { setActiveTab('dashboard'); setSelectedEpisodeId(null); }}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
                 activeTab === 'dashboard' 
-                  ? 'bg-blue-600/10 text-blue-450 border border-blue-650/40' 
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white border border-transparent'
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-805 hover:bg-zinc-900 hover:text-white border border-transparent'
               }`}
             >
-              <LayoutDashboard size={14} />
-              <span>总览 Dashboard</span>
+              <LayoutDashboard size={14} className="text-blue-400" />
+              <span>数据统计 (Dashboard)</span>
             </button>
 
             <button
               onClick={() => { setActiveTab('directory'); }}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
                 activeTab === 'directory' 
-                  ? 'bg-blue-600/10 text-blue-450 border border-blue-650/40' 
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white border border-transparent'
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-805 hover:bg-zinc-900 hover:text-white border border-transparent'
               }`}
             >
-              <FolderOpen size={14} />
-              <span className="flex-1 text-left">Episode 数据目录</span>
+              <FolderOpen size={14} className="text-amber-400" />
+              <span className="flex-1 text-left">数据目录 (MWV / ITW)</span>
               {presetFilter && (
-                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
               )}
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('cutting'); }}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
+                activeTab === 'cutting' 
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-805 hover:bg-zinc-900 hover:text-white border border-transparent'
+              }`}
+            >
+              <Scissors size={14} className="text-rose-400" />
+              <span className="flex-1 text-left">MWV 切割工作台</span>
+              <span className="bg-rose-500/20 text-rose-300 text-[9px] px-1.5 py-0.2 rounded font-mono font-bold">
+                12
+              </span>
             </button>
 
             <button
               onClick={() => { setActiveTab('datasets'); }}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
                 activeTab === 'datasets' 
-                  ? 'bg-blue-600/10 text-blue-450 border border-blue-650/40' 
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white border border-transparent'
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-850 hover:bg-zinc-900 hover:text-white border border-transparent'
               }`}
             >
-              <Cpu size={14} />
+              <Cpu size={14} className="text-sky-400" />
               <span className="flex-1 text-left">训练数据集编译</span>
               {datasetEpisodes.length > 0 && (
-                <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.2 rounded-full font-mono font-bold">
+                <span className="bg-sky-500/20 text-sky-305 text-sky-300 text-[10px] px-1.5 py-0.2 rounded font-mono font-bold">
                   {datasetEpisodes.length}
                 </span>
               )}
@@ -139,36 +160,61 @@ export default function App() {
               onClick={() => { setActiveTab('delivery'); }}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
                 activeTab === 'delivery' 
-                  ? 'bg-blue-600/10 text-blue-450 border border-blue-650/40' 
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white border border-transparent'
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-850 hover:bg-zinc-900 hover:text-white border border-transparent'
               }`}
             >
-              <Truck size={14} />
-              <span>数据交付分发</span>
+              <Truck size={14} className="text-emerald-400" />
+              <span>智能数据交付分发</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('download_hub'); }}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
+                activeTab === 'download_hub' 
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-850 hover:bg-zinc-900 hover:text-white border border-transparent'
+              }`}
+            >
+              <HardDriveDownload size={14} className="text-violet-400" />
+              <span className="flex-1 text-left">数据下载中心</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             </button>
 
             <button
               onClick={() => { setActiveTab('objects'); }}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
                 activeTab === 'objects' 
-                  ? 'bg-blue-600/10 text-blue-450 border border-blue-650/40' 
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white border border-transparent'
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-850 hover:bg-zinc-900 hover:text-white border border-transparent'
               }`}
             >
-              <Box size={14} />
-              <span>3D物理物品资产</span>
+              <Box size={14} className="text-zinc-400" />
+              <span>3D物理实物资产</span>
             </button>
 
             <button
               onClick={() => { setActiveTab('rules'); }}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
                 activeTab === 'rules' 
-                  ? 'bg-blue-600/10 text-blue-450 border border-blue-650/40' 
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white border border-transparent'
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-850 hover:bg-zinc-900 hover:text-white border border-transparent'
               }`}
             >
-              <ShieldCheck size={14} />
+              <ShieldCheck size={14} className="text-amber-500" />
               <span>非结构化质检规则</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('system'); }}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
+                activeTab === 'system' 
+                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-850 hover:bg-zinc-900 hover:text-white border border-transparent'
+              }`}
+            >
+              <Settings size={14} className="text-indigo-400" />
+              <span>系统挂载管理 (System)</span>
             </button>
 
           </nav>
@@ -286,8 +332,16 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'cutting' && (
+            <CuttingView />
+          )}
+
           {activeTab === 'delivery' && (
             <DeliveryView />
+          )}
+
+          {activeTab === 'download_hub' && (
+            <DownloadHubView />
           )}
 
           {activeTab === 'objects' && (
@@ -296,6 +350,10 @@ export default function App() {
 
           {activeTab === 'rules' && (
             <RulesView />
+          )}
+
+          {activeTab === 'system' && (
+            <SystemView />
           )}
 
         </main>
