@@ -14,7 +14,6 @@ import { ObjectsView } from './components/ObjectsView';
 import { RulesView } from './components/RulesView';
 import { CuttingView } from './components/CuttingView';
 import { DownloadHubView } from './components/DownloadHubView';
-import { SystemView } from './components/SystemView';
 
 import { 
   LayoutDashboard, FolderOpen, Cpu, Truck, Box, ShieldCheck, 
@@ -26,7 +25,7 @@ export default function App() {
   
   // Navigation State
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'directory' | 'datasets' | 'delivery' | 'cutting' | 'download_hub' | 'rules' | 'objects' | 'system'
+    'dashboard' | 'directory_mwv' | 'directory_itw' | 'directory_itf' | 'datasets' | 'delivery' | 'cutting' | 'download_hub' | 'rules' | 'objects'
   >('dashboard');
   
   // Selection details state
@@ -71,7 +70,7 @@ export default function App() {
     } else {
       setPresetFilter(null);
     }
-    setActiveTab("directory");
+    setActiveTab("directory_mwv");
   };
 
   return (
@@ -109,20 +108,50 @@ export default function App() {
               <span>数据统计 (Dashboard)</span>
             </button>
 
+            {/* Sub-directories categories heading */}
+            <div className="pt-3 pb-1 px-3">
+              <span className="text-[10px] text-zinc-500 font-bold tracking-wider uppercase font-sans">数据资产目录</span>
+            </div>
+
             <button
-              onClick={() => { setActiveTab('directory'); }}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
-                activeTab === 'directory' 
-                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
-                  : 'text-zinc-400 hover:bg-zinc-805 hover:bg-zinc-900 hover:text-white border border-transparent'
+              onClick={() => { setActiveTab('directory_mwv'); }}
+              className={`w-full flex items-center space-x-3 px-5 py-2 rounded-lg text-xs font-semibold select-none cursor-pointer transition-all ${
+                activeTab === 'directory_mwv' 
+                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'
               }`}
             >
-              <FolderOpen size={14} className="text-amber-400" />
-              <span className="flex-1 text-left">数据目录 (MWV / ITW)</span>
-              {presetFilter && (
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
-              )}
+              <span className={`w-1.5 h-1.5 rounded-full ${activeTab === 'directory_mwv' ? 'bg-amber-400 animate-pulse' : 'bg-amber-550 bg-amber-500'}`}></span>
+              <span className="flex-grow text-left">MWV · 动捕实验室</span>
             </button>
+
+            <button
+              onClick={() => { setActiveTab('directory_itw'); }}
+              className={`w-full flex items-center space-x-3 px-5 py-2 rounded-lg text-xs font-semibold select-none cursor-pointer transition-all ${
+                activeTab === 'directory_itw' 
+                  ? 'bg-blue-500/15 text-blue-300 border border-blue-500/30 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${activeTab === 'directory_itw' ? 'bg-blue-400 animate-pulse' : 'bg-blue-550 bg-blue-500'}`}></span>
+              <span className="flex-grow text-left">ITW · 真实环境</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('directory_itf'); }}
+              className={`w-full flex items-center space-x-3 px-5 py-2 rounded-lg text-xs font-semibold select-none cursor-pointer transition-all ${
+                activeTab === 'directory_itf' 
+                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold' 
+                  : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${activeTab === 'directory_itf' ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-555 bg-emerald-500'}`}></span>
+              <span className="flex-grow text-left">ITF · 智能力觉触觉</span>
+            </button>
+
+            <div className="pt-2 pb-1 px-3">
+              <span className="text-[10px] text-zinc-500 font-bold tracking-wider uppercase font-sans">处理与编译</span>
+            </div>
 
             <button
               onClick={() => { setActiveTab('cutting'); }}
@@ -203,18 +232,6 @@ export default function App() {
             >
               <ShieldCheck size={14} className="text-amber-500" />
               <span>非结构化质检规则</span>
-            </button>
-
-            <button
-              onClick={() => { setActiveTab('system'); }}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors ${
-                activeTab === 'system' 
-                  ? 'bg-blue-600/10 text-white border border-blue-650/40 font-bold' 
-                  : 'text-zinc-400 hover:bg-zinc-850 hover:bg-zinc-900 hover:text-white border border-transparent'
-              }`}
-            >
-              <Settings size={14} className="text-indigo-400" />
-              <span>系统挂载管理 (System)</span>
             </button>
 
           </nav>
@@ -313,13 +330,36 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'directory' && (
+          {activeTab === 'directory_mwv' && (
             <DirectoryView 
               onSelectEpisode={(id) => handleSelectEpisode(id)}
               onAddToDataset={(id) => handleToggleAddToDataset(id)}
               datasetEpisodes={datasetEpisodes}
               presetFilter={presetFilter}
               onClearPresetFilter={() => setPresetFilter(null)}
+              defaultPipelineFilter="MWV"
+            />
+          )}
+
+          {activeTab === 'directory_itw' && (
+            <DirectoryView 
+              onSelectEpisode={(id) => handleSelectEpisode(id)}
+              onAddToDataset={(id) => handleToggleAddToDataset(id)}
+              datasetEpisodes={datasetEpisodes}
+              presetFilter={presetFilter}
+              onClearPresetFilter={() => setPresetFilter(null)}
+              defaultPipelineFilter="ITW"
+            />
+          )}
+
+          {activeTab === 'directory_itf' && (
+            <DirectoryView 
+              onSelectEpisode={(id) => handleSelectEpisode(id)}
+              onAddToDataset={(id) => handleToggleAddToDataset(id)}
+              datasetEpisodes={datasetEpisodes}
+              presetFilter={presetFilter}
+              onClearPresetFilter={() => setPresetFilter(null)}
+              defaultPipelineFilter="ITF"
             />
           )}
 
@@ -352,9 +392,7 @@ export default function App() {
             <RulesView />
           )}
 
-          {activeTab === 'system' && (
-            <SystemView />
-          )}
+          {/* Deleted System View mounting */}
 
         </main>
 

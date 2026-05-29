@@ -18,7 +18,7 @@ interface DirectoryViewProps {
   datasetEpisodes: string[];
   presetFilter: string | null;
   onClearPresetFilter: () => void;
-  defaultPipelineFilter?: 'ALL' | 'MWV' | 'ITW';
+  defaultPipelineFilter?: 'ALL' | 'MWV' | 'ITW' | 'ITF';
 }
 
 export function DirectoryView({ 
@@ -31,7 +31,7 @@ export function DirectoryView({
 }: DirectoryViewProps) {
   
   // Pipeline selector filter
-  const [pipelineFilter, setPipelineFilter] = useState<'ALL' | 'MWV' | 'ITW'>(defaultPipelineFilter);
+  const [pipelineFilter, setPipelineFilter] = useState<'ALL' | 'MWV' | 'ITW' | 'ITF'>(defaultPipelineFilter);
   
   // Synchronize state with incoming prop
   React.useEffect(() => {
@@ -123,7 +123,38 @@ export function DirectoryView({
 
       return true;
     });
-  }, [searchText, presetFilter, selectedScenes, selectedQCStatus, selectedAlignment, selectedTrainable, selectedDeliverable, selectedIntegrity]);
+  }, [searchText, presetFilter, selectedScenes, selectedQCStatus, selectedAlignment, selectedTrainable, selectedDeliverable, selectedIntegrity, pipelineFilter]);
+
+  // Separated statistics calculations for current pipeline filter
+  const pipelineStats = useMemo(() => {
+    // filter episodes of this specific pipeline
+    const episodesForPipeline = mockEpisodes.filter(e => pipelineFilter === 'ALL' ? true : e.pipeline === pipelineFilter);
+    const count = episodesForPipeline.length;
+    
+    // Total size calculation (extracting MB float)
+    const totalSizeMB = episodesForPipeline.reduce((acc, curr) => {
+      const val = parseFloat(curr.total_size);
+      return acc + (isNaN(val) ? 0 : val);
+    }, 0);
+    
+    // Total duration (seconds)
+    const totalSec = episodesForPipeline.reduce((acc, curr) => acc + curr.duration, 0);
+    
+    // Pass rate and trainable rate
+    const passCount = episodesForPipeline.filter(e => e.qc_status === 'pass').length;
+    const passRate = count > 0 ? ((passCount / count) * 100).toFixed(1) : "0.0";
+    
+    const trainableCount = episodesForPipeline.filter(e => e.trainable).length;
+    const trainableRate = count > 0 ? ((trainableCount / count) * 100).toFixed(1) : "0.0";
+
+    return {
+      count,
+      size: totalSizeMB >= 1024 ? `${(totalSizeMB / 1024).toFixed(1)} GB` : `${totalSizeMB.toFixed(1)} MB`,
+      duration: `${totalSec.toFixed(1)}s`,
+      passRate,
+      trainableRate
+    };
+  }, [pipelineFilter]);
 
   // Clear all filters handler
   const handleClearFilters = () => {
@@ -319,39 +350,67 @@ export function DirectoryView({
           <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b border-[#1e1e24] gap-4">
             <div>
               <h4 className="text-sm font-semibold text-zinc-100 flex items-center col-span-2">
-                <Folder size={16} className="text-zinc-400 mr-2" />
-                Episode 采集文件资产目录
+                <Folder size={16} className={`mr-2 ${
+                  pipelineFilter === 'MWV' ? 'text-amber-400' :
+                  pipelineFilter === 'ITW' ? 'text-blue-400' :
+                  pipelineFilter === 'ITF' ? 'text-emerald-400' : 'text-zinc-400'
+                }`} />
+                <span>
+                  {pipelineFilter === 'MWV' && "MWV · 动捕实验室数据目录 (Robot Rig & Mocap)"}
+                  {pipelineFilter === 'ITW' && "ITW · 真实环境及手持示教数据目录 (In The Wild)"}
+                  {pipelineFilter === 'ITF' && "ITF · 智能力觉与触觉感知数据目录 (Tactile & Force feedback)"}
+                  {pipelineFilter === 'ALL' && "Episode 采集文件资产分流主目录"}
+                </span>
               </h4>
               <p className="text-xs text-zinc-500 mt-0.5 font-sans">
-                已检索到 <span className="font-semibold text-zinc-200 font-mono">{filteredEpisodes.length}</span> 个非结构化 Episode 目录单元
+                物理挂载存储区检索到当前分类共 <span className="font-semibold text-zinc-200 font-mono">{filteredEpisodes.length}</span> 个非结构化标签单元
               </p>
-            </div>
-
-            {/* Quick Segmented Control tab for MWV / ITW */}
-            <div className="flex bg-[#09090b] p-1 rounded-lg border border-zinc-905 border-zinc-800 text-[10.5px]">
-              <button 
-                onClick={() => setPipelineFilter('ALL')}
-                className={`px-3 py-1 rounded-md transition duration-150 cursor-pointer text-xs ${pipelineFilter === 'ALL' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
-              >
-                全数据线 ({mockEpisodes.length})
-              </button>
-              <button 
-                onClick={() => setPipelineFilter('MWV')}
-                className={`px-3 py-1 rounded-md transition duration-150 cursor-pointer text-xs ${pipelineFilter === 'MWV' ? 'bg-amber-600 text-white font-semibold' : 'text-zinc-400 hover:text-amber-400'}`}
-              >
-                MWV (动捕实验室)
-              </button>
-              <button 
-                onClick={() => setPipelineFilter('ITW')}
-                className={`px-3 py-1 rounded-md transition duration-150 cursor-pointer text-xs ${pipelineFilter === 'ITW' ? 'bg-blue-600 text-white font-semibold' : 'text-zinc-400 hover:text-blue-400'}`}
-              >
-                ITW (真实环境)
-              </button>
             </div>
 
             {/* Quick search statistics */}
             <div className="text-xs text-zinc-400 font-medium">
-              选定 EPs: <span className="font-mono text-indigo-405 text-indigo-400 bg-indigo-950/25 border border-indigo-900/35 px-1.5 py-0.5 rounded font-bold">{datasetEpisodes.length}</span> 个
+              选定 EPs: <span className="font-mono text-indigo-400 bg-indigo-950/25 border border-indigo-900/35 px-1.5 py-0.5 rounded font-bold">{datasetEpisodes.length}</span> 个
+            </div>
+          </div>
+
+          {/* Pipeline Separated Stats Panel as requested by user */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 my-4">
+            <div className="bg-[#09090b]/80 p-3.5 rounded-xl border border-[#1e1e24] flex flex-col justify-between">
+              <span className="text-[10.5px] text-zinc-400 font-medium font-sans">本地 Episode 检索项</span>
+              <div className="flex items-baseline space-x-1 mt-1">
+                <span className="text-lg font-bold text-white font-mono">{pipelineStats.count}</span>
+                <span className="text-[9.5px] text-zinc-500 font-sans">个串流</span>
+              </div>
+            </div>
+            <div className="bg-[#09090b]/80 p-3.5 rounded-xl border border-[#1e1e24] flex flex-col justify-between">
+              <span className="text-[10.5px] text-zinc-400 font-medium font-sans">物理占用体积</span>
+              <div className="flex items-baseline space-x-1 mt-1">
+                <span className={`text-lg font-bold font-mono ${
+                  pipelineFilter === 'MWV' ? 'text-amber-400' :
+                  pipelineFilter === 'ITW' ? 'text-blue-400' :
+                  pipelineFilter === 'ITF' ? 'text-emerald-400' : 'text-zinc-200'
+                }`}>{pipelineStats.size}</span>
+                <span className="text-[9.5px] text-zinc-500 font-sans">NAS挂载</span>
+              </div>
+            </div>
+            <div className="bg-[#09090b]/80 p-3.5 rounded-xl border border-[#1e1e24] flex flex-col justify-between">
+              <span className="text-[10.5px] text-zinc-400 font-medium font-sans">集录物理时长 (累积)</span>
+              <div className="flex items-baseline space-x-1 mt-1">
+                <span className="text-lg font-bold text-violet-400 font-mono">{pipelineStats.duration}</span>
+                <span className="text-[9.5px] text-zinc-500 font-sans">动作帧池</span>
+              </div>
+            </div>
+            <div className="bg-[#09090b]/80 p-3.5 rounded-xl border border-[#1e1e24] flex flex-col justify-between">
+              <span className="text-[10.5px] text-zinc-400 font-medium font-sans">合格性 & 训练就绪率</span>
+              <div className="flex items-baseline space-x-2 mt-1 truncate">
+                <span className="text-xs font-semibold text-emerald-450">
+                  质检: {pipelineStats.passRate}%
+                </span>
+                <span className="text-[9.5px] text-zinc-500">/</span>
+                <span className="text-xs font-semibold text-teal-400">
+                  训练: {pipelineStats.trainableRate}%
+                </span>
+              </div>
             </div>
           </div>
 
@@ -400,7 +459,9 @@ export function DirectoryView({
                             <span className="font-semibold text-zinc-200 group-hover:text-amber-500 transition flex items-center">
                               {ep.episode_id}
                               <span className={`ml-1.5 text-[8px] px-1 rounded-sm font-bold uppercase ${
-                                ep.pipeline === 'MWV' ? 'bg-amber-950/40 text-amber-400 border border-amber-900/20' : 'bg-blue-950/40 text-blue-400 border border-blue-900/20'
+                                ep.pipeline === 'MWV' ? 'bg-amber-950/40 text-amber-400 border border-amber-900/20' :
+                                ep.pipeline === 'ITW' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/20' :
+                                'bg-emerald-950/40 text-emerald-400 border border-emerald-900/20'
                               }`}>
                                 {ep.pipeline}
                               </span>
